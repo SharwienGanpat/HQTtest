@@ -7,8 +7,7 @@
             <xpath expr="//header" position="inside">
                 <button name="action_recalculate_currency_prices"
                         type="object"
-                        string="Recalculate Currency Prices"
-                        class="btn-primary"/>
+                        string="Recalculate Currency Prices"/>
             </xpath>
         </field>
     </record>
