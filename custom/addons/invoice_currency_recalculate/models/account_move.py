@@ -20,7 +20,7 @@ class AccountMove(models.Model):
             date = move.invoice_date or fields.Date.context_today(move)
 
             for line in move.invoice_line_ids:
-                if line.display_type:
+                if line.display_type in ("line_section", "line_note"):
                     continue
 
                 new_price = old_currency._convert(
