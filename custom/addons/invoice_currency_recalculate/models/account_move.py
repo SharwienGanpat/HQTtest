@@ -6,7 +6,6 @@ class AccountMove(models.Model):
 
     def action_recalculate_currency_prices(self):
         for move in self:
-            # Use company currency as source, usually USD or SRD depending on your setup
             old_currency = move.company_id.currency_id
             new_currency = move.currency_id
 
@@ -19,10 +18,8 @@ class AccountMove(models.Model):
                 if line.display_type:
                     continue
 
-                old_price = line.price_unit or 0.0
-
                 new_price = old_currency._convert(
-                    old_price,
+                    line.price_unit or 0.0,
                     new_currency,
                     move.company_id,
                     date,
