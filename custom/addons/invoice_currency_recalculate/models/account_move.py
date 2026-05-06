@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class AccountMoveLine(models.Model):
@@ -19,7 +19,8 @@ class AccountMove(models.Model):
         string="Previous Currency"
     )
 
-    def action_recalculate_currency_prices(self):
+    @api.onchange("currency_id")
+    def _onchange_currency_id_recalculate_prices(self):
         for move in self:
             new_currency = move.currency_id
 
@@ -34,6 +35,7 @@ class AccountMove(models.Model):
 
                 old_currency = (
                     line.last_recalculated_currency_id
+                    or move._origin.currency_id
                     or move.company_id.currency_id
                 )
 
