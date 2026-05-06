@@ -4,9 +4,9 @@ from odoo import fields, models
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
-    currency_price_recalculated = fields.Boolean(
-        string="Currency Price Recalculated",
-        default=False,
+    last_recalculated_currency_id = fields.Many2one(
+        "res.currency",
+        string="Last Recalculated Currency",
         copy=False,
     )
 
@@ -21,13 +21,9 @@ class AccountMove(models.Model):
 
     def action_recalculate_currency_prices(self):
         for move in self:
-            old_currency = move.company_id.currency_id
             new_currency = move.currency_id
 
-            if not old_currency or not new_currency:
-                continue
-
-            if old_currency == new_currency:
+            if not new_currency:
                 continue
 
             date = move.invoice_date or fields.Date.context_today(move)
@@ -36,8 +32,12 @@ class AccountMove(models.Model):
                 if line.display_type in ("line_section", "line_note"):
                     continue
 
-                # Prevent multiplying again
-                if line.currency_price_recalculated:
+                old_currency = (
+                    line.last_recalculated_currency_id
+                    or move.company_id.currency_id
+                )
+
+                if old_currency == new_currency:
                     continue
 
                 new_price = old_currency._convert(
@@ -48,4 +48,4 @@ class AccountMove(models.Model):
                 )
 
                 line.price_unit = new_currency.round(new_price)
-                line.currency_price_recalculated = True
+                line.last_recalculated_currency_id = new_currency
