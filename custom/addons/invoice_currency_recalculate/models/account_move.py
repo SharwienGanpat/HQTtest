@@ -1,6 +1,16 @@
 from odoo import fields, models
 
 
+class AccountMoveLine(models.Model):
+    _inherit = "account.move.line"
+
+    currency_price_recalculated = fields.Boolean(
+        string="Currency Price Recalculated",
+        default=False,
+        copy=False,
+    )
+
+
 class AccountMove(models.Model):
     _inherit = "account.move"
 
@@ -17,10 +27,17 @@ class AccountMove(models.Model):
             if not old_currency or not new_currency:
                 continue
 
+            if old_currency == new_currency:
+                continue
+
             date = move.invoice_date or fields.Date.context_today(move)
 
             for line in move.invoice_line_ids:
                 if line.display_type in ("line_section", "line_note"):
+                    continue
+
+                # Prevent multiplying again
+                if line.currency_price_recalculated:
                     continue
 
                 new_price = old_currency._convert(
@@ -31,3 +48,4 @@ class AccountMove(models.Model):
                 )
 
                 line.price_unit = new_currency.round(new_price)
+                line.currency_price_recalculated = True
