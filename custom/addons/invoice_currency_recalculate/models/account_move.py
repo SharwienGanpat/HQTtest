@@ -4,6 +4,11 @@ from odoo import fields, models
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    previous_currency_id = fields.Many2one(
+        "res.currency",
+        string="Previous Currency"
+    )
+
     def action_recalculate_currency_prices(self):
         for move in self:
             old_currency = move.company_id.currency_id
