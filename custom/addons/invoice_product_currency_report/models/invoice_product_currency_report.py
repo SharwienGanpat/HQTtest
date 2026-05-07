@@ -49,6 +49,7 @@ class InvoiceProductCurrencyReport(models.Model):
     )
 
     quantity = fields.Float(string="Quantity", readonly=True)
+    purchase_cost = fields.Float(string="Purchase Cost", readonly=True)
 
     amount_untaxed_usd = fields.Float(string="Tax Excluded USD", readonly=True)
     amount_untaxed_srd = fields.Float(string="Tax Excluded SRD", readonly=True)
@@ -66,6 +67,7 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id AS product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text) AS product_name,
                     pt.categ_id AS product_categ_id,
+                    pt.standard_price AS purchase_cost,
 
                     am.invoice_date AS invoice_date,
                     am.invoice_date_due AS due_date,
@@ -145,6 +147,7 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text),
                     pt.categ_id,
+                    pt.standard_price,
 
                     am.invoice_date,
                     am.invoice_date_due,
