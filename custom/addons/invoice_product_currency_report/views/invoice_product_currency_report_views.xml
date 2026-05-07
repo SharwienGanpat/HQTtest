@@ -7,7 +7,7 @@
             <list string="Invoice Product Currency Report" create="false" edit="false" delete="false">
                 <field name="product_name" string="Product" optional="show"/>
                 <field name="quantity" string="Quantity" sum="Quantity" optional="show"/>
-                <field name="purchase_cost" string="Purchase Cost" optional="show"/>
+                <field name="purchase_cost" string="Purchase Cost" optional="hide"/>
 
                 <field name="amount_untaxed_usd" string="Tax Excluded USD" sum="Tax Excluded USD" optional="show"/>
                 <field name="amount_untaxed_srd" string="Tax Excluded SRD" sum="Tax Excluded SRD" optional="show"/>
