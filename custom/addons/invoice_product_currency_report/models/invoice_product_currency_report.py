@@ -49,13 +49,21 @@ class InvoiceProductCurrencyReport(models.Model):
     )
 
     quantity = fields.Float(string="Quantity", readonly=True)
-    purchase_cost = fields.Float(string="Purchase Cost", readonly=True)
+    purchase_cost = fields.Float(
+        string="Purchase Cost",
+        compute="_compute_purchase_cost",
+        readonly=True,
+    )
 
     amount_untaxed_usd = fields.Float(string="Tax Excluded USD", readonly=True)
     amount_untaxed_srd = fields.Float(string="Tax Excluded SRD", readonly=True)
 
     amount_total_usd = fields.Float(string="Total USD", readonly=True)
     amount_total_srd = fields.Float(string="Total SRD", readonly=True)
+
+    def _compute_purchase_cost(self):
+        for rec in self:
+            rec.purchase_cost = rec.product_id.standard_price or 0.0
 
     def init(self):
         tools.drop_view_if_exists(self.env.cr, self._table)
@@ -67,7 +75,6 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id AS product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text) AS product_name,
                     pt.categ_id AS product_categ_id,
-                    COALESCE((pp.standard_price->>1)::numeric, 0.0) AS purchase_cost,
 
                     am.invoice_date AS invoice_date,
                     am.invoice_date_due AS due_date,
@@ -147,7 +154,6 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text),
                     pt.categ_id,
-                    COALESCE((pp.standard_price->>1)::numeric, 0.0),
 
                     am.invoice_date,
                     am.invoice_date_due,
