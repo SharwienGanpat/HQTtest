@@ -76,22 +76,6 @@ class InvoiceProductCurrencyReport(models.Model):
                     COALESCE(pt.name->>'en_US', pt.name::text) AS product_name,
                     pt.categ_id AS product_categ_id,
 
-                    am.invoice_date AS invoice_date,
-                    am.invoice_date_due AS due_date,
-
-                    am.partner_id AS partner_id,
-                    am.commercial_partner_id AS commercial_partner_id,
-
-                    am.currency_id AS currency_id,
-                    am.company_id AS company_id,
-                    am.journal_id AS journal_id,
-
-                    am.invoice_user_id AS invoice_user_id,
-                    am.team_id AS team_id,
-
-                    am.state AS state,
-                    am.payment_state AS payment_state,
-
                     SUM(
                         CASE
                             WHEN am.move_type = 'out_refund'
@@ -155,20 +139,5 @@ class InvoiceProductCurrencyReport(models.Model):
                     COALESCE(pt.name->>'en_US', pt.name::text),
                     pt.categ_id,
 
-                    am.invoice_date,
-                    am.invoice_date_due,
-
-                    am.partner_id,
-                    am.commercial_partner_id,
-
-                    am.currency_id,
-                    am.company_id,
-                    am.journal_id,
-
-                    am.invoice_user_id,
-                    am.team_id,
-
-                    am.state,
-                    am.payment_state
             )
         """)
