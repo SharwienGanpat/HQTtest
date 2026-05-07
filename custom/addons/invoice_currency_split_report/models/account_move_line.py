@@ -4,6 +4,12 @@ from odoo import api, fields, models
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    product_name_export = fields.Char(
+        string="Product",
+        compute="_compute_product_name_export",
+        store=True,
+    )
+
     invoice_date_due = fields.Date(
         string="Due Date",
         related="move_id.invoice_date_due",
@@ -39,6 +45,11 @@ class AccountMoveLine(models.Model):
         compute="_compute_currency_split_amounts",
         store=True,
     )
+
+    @api.depends("product_id")
+    def _compute_product_name_export(self):
+        for line in self:
+            line.product_name_export = line.product_id.display_name or ""
 
     @api.depends(
         "price_subtotal",
