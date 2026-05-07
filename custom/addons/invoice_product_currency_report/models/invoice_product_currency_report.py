@@ -7,41 +7,54 @@ class InvoiceProductCurrencyReport(models.Model):
     _auto = False
     _order = "product_name"
 
-    product_id = fields.Many2one(
-        "product.product",
-        string="Product",
+    product_id = fields.Many2one("product.product", string="Product", readonly=True)
+    product_name = fields.Char(string="Product", readonly=True)
+    product_categ_id = fields.Many2one("product.category", string="Product Category", readonly=True)
+
+    invoice_date = fields.Date(string="Invoice Date", readonly=True)
+    due_date = fields.Date(string="Due Date", readonly=True)
+
+    partner_id = fields.Many2one("res.partner", string="Customer", readonly=True)
+    commercial_partner_id = fields.Many2one("res.partner", string="Commercial Entity", readonly=True)
+
+    currency_id = fields.Many2one("res.currency", string="Currency", readonly=True)
+    company_id = fields.Many2one("res.company", string="Company", readonly=True)
+    journal_id = fields.Many2one("account.journal", string="Journal", readonly=True)
+
+    invoice_user_id = fields.Many2one("res.users", string="Salesperson", readonly=True)
+    team_id = fields.Many2one("crm.team", string="Sales Team", readonly=True)
+
+    state = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("posted", "Posted"),
+            ("cancel", "Cancelled"),
+        ],
+        string="Invoice Status",
         readonly=True,
     )
 
-    product_name = fields.Char(
-        string="Product",
+    payment_state = fields.Selection(
+        [
+            ("not_paid", "Not Paid"),
+            ("in_payment", "In Payment"),
+            ("paid", "Paid"),
+            ("partial", "Partially Paid"),
+            ("reversed", "Reversed"),
+            ("blocked", "Blocked"),
+            ("invoicing_legacy", "Invoicing App Legacy"),
+        ],
+        string="Payment Status",
         readonly=True,
     )
 
-    quantity = fields.Float(
-        string="Quantity",
-        readonly=True,
-    )
+    quantity = fields.Float(string="Quantity", readonly=True)
 
-    amount_untaxed_usd = fields.Float(
-        string="Tax Excluded USD",
-        readonly=True,
-    )
+    amount_untaxed_usd = fields.Float(string="Tax Excluded USD", readonly=True)
+    amount_untaxed_srd = fields.Float(string="Tax Excluded SRD", readonly=True)
 
-    amount_untaxed_srd = fields.Float(
-        string="Tax Excluded SRD",
-        readonly=True,
-    )
-
-    amount_total_usd = fields.Float(
-        string="Total USD",
-        readonly=True,
-    )
-
-    amount_total_srd = fields.Float(
-        string="Total SRD",
-        readonly=True,
-    )
+    amount_total_usd = fields.Float(string="Total USD", readonly=True)
+    amount_total_srd = fields.Float(string="Total SRD", readonly=True)
 
     def init(self):
         tools.drop_view_if_exists(self.env.cr, self._table)
@@ -49,12 +62,26 @@ class InvoiceProductCurrencyReport(models.Model):
             CREATE OR REPLACE VIEW invoice_product_currency_report AS (
                 SELECT
                     MIN(aml.id) AS id,
-                    aml.product_id AS product_id,
 
-                    COALESCE(
-                        pt.name->>'en_US',
-                        pt.name::text
-                    ) AS product_name,
+                    aml.product_id AS product_id,
+                    COALESCE(pt.name->>'en_US', pt.name::text) AS product_name,
+                    pt.categ_id AS product_categ_id,
+
+                    am.invoice_date AS invoice_date,
+                    am.invoice_date_due AS due_date,
+
+                    am.partner_id AS partner_id,
+                    am.commercial_partner_id AS commercial_partner_id,
+
+                    am.currency_id AS currency_id,
+                    am.company_id AS company_id,
+                    am.journal_id AS journal_id,
+
+                    am.invoice_user_id AS invoice_user_id,
+                    am.team_id AS team_id,
+
+                    am.state AS state,
+                    am.payment_state AS payment_state,
 
                     SUM(
                         CASE
@@ -116,6 +143,23 @@ class InvoiceProductCurrencyReport(models.Model):
 
                 GROUP BY
                     aml.product_id,
-                    COALESCE(pt.name->>'en_US', pt.name::text)
+                    COALESCE(pt.name->>'en_US', pt.name::text),
+                    pt.categ_id,
+
+                    am.invoice_date,
+                    am.invoice_date_due,
+
+                    am.partner_id,
+                    am.commercial_partner_id,
+
+                    am.currency_id,
+                    am.company_id,
+                    am.journal_id,
+
+                    am.invoice_user_id,
+                    am.team_id,
+
+                    am.state,
+                    am.payment_state
             )
         """)
