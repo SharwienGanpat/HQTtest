@@ -11,44 +11,8 @@ class InvoiceProductCurrencyReport(models.Model):
     product_name = fields.Char(string="Product", readonly=True)
     product_categ_id = fields.Many2one("product.category", string="Product Category", readonly=True)
 
-    invoice_date = fields.Date(string="Invoice Date", readonly=True)
-    due_date = fields.Date(string="Due Date", readonly=True)
-
-    partner_id = fields.Many2one("res.partner", string="Customer", readonly=True)
-    commercial_partner_id = fields.Many2one("res.partner", string="Commercial Entity", readonly=True)
-
-    currency_id = fields.Many2one("res.currency", string="Currency", readonly=True)
-    company_id = fields.Many2one("res.company", string="Company", readonly=True)
-    journal_id = fields.Many2one("account.journal", string="Journal", readonly=True)
-
-    invoice_user_id = fields.Many2one("res.users", string="Salesperson", readonly=True)
-    team_id = fields.Many2one("crm.team", string="Sales Team", readonly=True)
-
-    state = fields.Selection(
-        [
-            ("draft", "Draft"),
-            ("posted", "Posted"),
-            ("cancel", "Cancelled"),
-        ],
-        string="Invoice Status",
-        readonly=True,
-    )
-
-    payment_state = fields.Selection(
-        [
-            ("not_paid", "Not Paid"),
-            ("in_payment", "In Payment"),
-            ("paid", "Paid"),
-            ("partial", "Partially Paid"),
-            ("reversed", "Reversed"),
-            ("blocked", "Blocked"),
-            ("invoicing_legacy", "Invoicing App Legacy"),
-        ],
-        string="Payment Status",
-        readonly=True,
-    )
-
     quantity = fields.Float(string="Quantity", readonly=True)
+
     purchase_cost = fields.Float(
         string="Purchase Cost",
         compute="_compute_purchase_cost",
@@ -138,6 +102,5 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text),
                     pt.categ_id
-
             )
         """)
