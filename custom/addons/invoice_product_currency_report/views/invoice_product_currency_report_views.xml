@@ -42,6 +42,6 @@
               name="Invoice Product Currency Report"
               parent="account.menu_finance_reports"
               action="action_invoice_product_currency_report"
-              sequence="95"/>
+              sequence="96"/>
 
 </odoo>
