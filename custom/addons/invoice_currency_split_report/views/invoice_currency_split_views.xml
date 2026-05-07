@@ -2,13 +2,14 @@
 
     <record id="view_invoice_currency_split_list" model="ir.ui.view">
         <field name="name">invoice.currency.split.list</field>
-        <field name="model">account.move</field>
+        <field name="model">account.move.line</field>
         <field name="arch" type="xml">
             <list string="Invoice Currency Split Report" create="false" edit="false" delete="false">
-                <field name="name" string="Number"/>
+                <field name="move_id" string="Number"/>
                 <field name="partner_id" string="Customer"/>
-                <field name="invoice_date" string="Invoice Date"/>
+                <field name="date" string="Invoice Date"/>
                 <field name="invoice_date_due" string="Due Date"/>
+                <field name="product_id" string="Product"/>
 
                 <field name="amount_untaxed_usd" string="Tax Excluded USD" sum="Tax Excluded USD"/>
                 <field name="amount_untaxed_srd" string="Tax Excluded SRD" sum="Tax Excluded SRD"/>
@@ -16,36 +17,37 @@
                 <field name="amount_total_usd" string="Total USD" sum="Total USD"/>
                 <field name="amount_total_srd" string="Total SRD" sum="Total SRD"/>
 
-                <field name="payment_state" string="Status"/>
+                <field name="invoice_payment_state" string="Status"/>
             </list>
         </field>
     </record>
 
     <record id="view_invoice_currency_split_search" model="ir.ui.view">
         <field name="name">invoice.currency.split.search</field>
-        <field name="model">account.move</field>
+        <field name="model">account.move.line</field>
         <field name="arch" type="xml">
             <search string="Invoice Currency Split Report">
-                <field name="name"/>
+                <field name="move_id"/>
                 <field name="partner_id"/>
-                <field name="invoice_date"/>
+                <field name="product_id"/>
+                <field name="date"/>
 
                 <filter string="Invoices"
                         name="customer_invoices"
-                        domain="[('move_type', '=', 'out_invoice')]"/>
+                        domain="[('move_id.move_type', '=', 'out_invoice')]"/>
 
                 <filter string="Posted"
                         name="posted"
-                        domain="[('state', '=', 'posted')]"/>
+                        domain="[('move_id.state', '=', 'posted')]"/>
 
                 <filter string="Draft"
                         name="draft"
-                        domain="[('state', '=', 'draft')]"/>
+                        domain="[('move_id.state', '=', 'draft')]"/>
 
                 <group expand="0" string="Group By">
                     <filter string="Product"
                             name="group_product"
-                            context="{'group_by': 'invoice_line_ids.product_id'}"/>
+                            context="{'group_by': 'product_id'}"/>
 
                     <filter string="Customer"
                             name="group_customer"
@@ -53,7 +55,7 @@
 
                     <filter string="Invoice Date"
                             name="group_invoice_date"
-                            context="{'group_by': 'invoice_date'}"/>
+                            context="{'group_by': 'date'}"/>
 
                     <filter string="Currency"
                             name="group_currency"
@@ -61,7 +63,7 @@
 
                     <filter string="Status"
                             name="group_status"
-                            context="{'group_by': 'payment_state'}"/>
+                            context="{'group_by': 'invoice_payment_state'}"/>
                 </group>
             </search>
         </field>
@@ -69,15 +71,19 @@
 
     <record id="action_invoice_currency_split_report" model="ir.actions.act_window">
         <field name="name">Invoice Currency Split Report</field>
-        <field name="res_model">account.move</field>
+        <field name="res_model">account.move.line</field>
         <field name="view_mode">list</field>
         <field name="view_id" ref="view_invoice_currency_split_list"/>
         <field name="search_view_id" ref="view_invoice_currency_split_search"/>
-        <field name="domain">[('move_type', '=', 'out_invoice')]</field>
+        <field name="domain">[
+            ('move_id.move_type', '=', 'out_invoice'),
+            ('product_id', '!=', False),
+            ('display_type', 'not in', ('line_section', 'line_note'))
+        ]</field>
         <field name="context">
             {
                 'search_default_customer_invoices': 1,
-                'group_by': 'invoice_line_ids.product_id'
+                'search_default_group_product': 1
             }
         </field>
     </record>
