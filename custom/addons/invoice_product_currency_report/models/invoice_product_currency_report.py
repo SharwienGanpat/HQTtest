@@ -6,19 +6,17 @@ class InvoiceProductCurrencyReport(models.Model):
     _description = "Invoice Product Currency Report"
     _auto = False
     _rec_name = "product_name"
+    _order = "product_name"
 
     product_id = fields.Many2one("product.product", string="Product", readonly=True)
     product_name = fields.Char(string="Product", readonly=True)
+    product_categ_id = fields.Many2one("product.category", string="Product Category", readonly=True)
 
     invoice_date = fields.Date(string="Invoice Date", readonly=True)
     due_date = fields.Date(string="Due Date", readonly=True)
 
     partner_id = fields.Many2one("res.partner", string="Customer", readonly=True)
-    commercial_partner_id = fields.Many2one(
-        "res.partner",
-        string="Commercial Entity",
-        readonly=True
-    )
+    commercial_partner_id = fields.Many2one("res.partner", string="Commercial Entity", readonly=True)
 
     currency_id = fields.Many2one("res.currency", string="Currency", readonly=True)
     company_id = fields.Many2one("res.company", string="Company", readonly=True)
@@ -27,10 +25,28 @@ class InvoiceProductCurrencyReport(models.Model):
     invoice_user_id = fields.Many2one("res.users", string="Salesperson", readonly=True)
     team_id = fields.Many2one("crm.team", string="Sales Team", readonly=True)
 
-    product_categ_id = fields.Many2one(
-        "product.category",
-        string="Product Category",
-        readonly=True
+    state = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("posted", "Posted"),
+            ("cancel", "Cancelled"),
+        ],
+        string="Invoice Status",
+        readonly=True,
+    )
+
+    payment_state = fields.Selection(
+        [
+            ("not_paid", "Not Paid"),
+            ("in_payment", "In Payment"),
+            ("paid", "Paid"),
+            ("partial", "Partially Paid"),
+            ("reversed", "Reversed"),
+            ("blocked", "Blocked"),
+            ("invoicing_legacy", "Invoicing App Legacy"),
+        ],
+        string="Payment Status",
+        readonly=True,
     )
 
     quantity = fields.Float(string="Quantity", readonly=True)
@@ -38,12 +54,11 @@ class InvoiceProductCurrencyReport(models.Model):
     purchase_cost = fields.Float(
         string="Purchase Cost",
         compute="_compute_purchase_cost",
-        readonly=True
+        readonly=True,
     )
 
     amount_untaxed_usd = fields.Float(string="Tax Excluded USD", readonly=True)
     amount_untaxed_srd = fields.Float(string="Tax Excluded SRD", readonly=True)
-
     amount_total_usd = fields.Float(string="Total USD", readonly=True)
     amount_total_srd = fields.Float(string="Total SRD", readonly=True)
 
@@ -56,86 +71,90 @@ class InvoiceProductCurrencyReport(models.Model):
 
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW invoice_product_currency_report AS (
-
                 SELECT
-                    MIN(aml.id) as id,
+                    MIN(aml.id) AS id,
 
-                    aml.product_id as product_id,
-                    MIN(COALESCE(pt.name->>'en_US', pt.name::text)) as product_name,
+                    aml.product_id AS product_id,
+                    MIN(COALESCE(pt.name->>'en_US', pt.name::text)) AS product_name,
+                    MIN(pt.categ_id) AS product_categ_id,
 
-                    MIN(am.invoice_date) as invoice_date,
-                    MIN(am.invoice_date_due) as due_date,
+                    MIN(am.invoice_date) AS invoice_date,
+                    MIN(am.invoice_date_due) AS due_date,
 
-                    MIN(am.partner_id) as partner_id,
-                    MIN(rp.commercial_partner_id) as commercial_partner_id,
+                    MIN(am.partner_id) AS partner_id,
+                    MIN(rp.commercial_partner_id) AS commercial_partner_id,
 
-                    MIN(am.currency_id) as currency_id,
-                    MIN(am.company_id) as company_id,
-                    MIN(am.journal_id) as journal_id,
+                    MIN(am.currency_id) AS currency_id,
+                    MIN(am.company_id) AS company_id,
+                    MIN(am.journal_id) AS journal_id,
 
-                    MIN(am.invoice_user_id) as invoice_user_id,
-                    MIN(am.team_id) as team_id,
+                    MIN(am.invoice_user_id) AS invoice_user_id,
+                    MIN(am.team_id) AS team_id,
 
-                    MIN(pt.categ_id) as product_categ_id,
-
-                    SUM(aml.quantity) as quantity,
+                    MIN(am.state) AS state,
+                    MIN(am.payment_state) AS payment_state,
 
                     SUM(
                         CASE
+                            WHEN am.move_type = 'out_refund'
+                            THEN -aml.quantity
+                            ELSE aml.quantity
+                        END
+                    ) AS quantity,
+
+                    SUM(
+                        CASE
+                            WHEN rc.name = 'USD' AND am.move_type = 'out_refund'
+                            THEN -aml.price_subtotal
                             WHEN rc.name = 'USD'
                             THEN aml.price_subtotal
                             ELSE 0
                         END
-                    ) as amount_untaxed_usd,
+                    ) AS amount_untaxed_usd,
 
                     SUM(
                         CASE
+                            WHEN rc.name = 'SRD' AND am.move_type = 'out_refund'
+                            THEN -aml.price_subtotal
                             WHEN rc.name = 'SRD'
                             THEN aml.price_subtotal
                             ELSE 0
                         END
-                    ) as amount_untaxed_srd,
+                    ) AS amount_untaxed_srd,
 
                     SUM(
                         CASE
+                            WHEN rc.name = 'USD' AND am.move_type = 'out_refund'
+                            THEN -aml.price_total
                             WHEN rc.name = 'USD'
                             THEN aml.price_total
                             ELSE 0
                         END
-                    ) as amount_total_usd,
+                    ) AS amount_total_usd,
 
                     SUM(
                         CASE
+                            WHEN rc.name = 'SRD' AND am.move_type = 'out_refund'
+                            THEN -aml.price_total
                             WHEN rc.name = 'SRD'
                             THEN aml.price_total
                             ELSE 0
                         END
-                    ) as amount_total_srd
+                    ) AS amount_total_srd
 
                 FROM account_move_line aml
+                JOIN account_move am ON aml.move_id = am.id
+                JOIN res_currency rc ON am.currency_id = rc.id
+                JOIN product_product pp ON aml.product_id = pp.id
+                JOIN product_template pt ON pp.product_tmpl_id = pt.id
+                LEFT JOIN res_partner rp ON am.partner_id = rp.id
 
-                INNER JOIN account_move am
-                    ON aml.move_id = am.id
-
-                INNER JOIN res_currency rc
-                    ON am.currency_id = rc.id
-
-                INNER JOIN product_product pp
-                    ON aml.product_id = pp.id
-
-                INNER JOIN product_template pt
-                    ON pp.product_tmpl_id = pt.id
-
-                LEFT JOIN res_partner rp
-                    ON am.partner_id = rp.id
-
-                WHERE
-                    aml.product_id IS NOT NULL
-                    AND am.move_type = 'out_invoice'
-                    AND am.state = 'posted'
+                WHERE aml.product_id IS NOT NULL
+                  AND am.move_type IN ('out_invoice', 'out_refund')
+                  AND am.state = 'posted'
+                  AND COALESCE(aml.display_type, '') NOT IN ('line_section', 'line_note')
 
                 GROUP BY
                     aml.product_id
-
             )
         """)
