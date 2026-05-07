@@ -4,7 +4,7 @@
     "depends": ["account"],
     "data": [
         "security/ir.model.access.csv",
-        "views/invoice_product_currency_report_views.xml",
+        "views/invoice_product_report_wizard_views.xml",
     ],
     "installable": True,
     "application": False,
