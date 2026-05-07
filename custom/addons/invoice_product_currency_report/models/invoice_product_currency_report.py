@@ -137,7 +137,7 @@ class InvoiceProductCurrencyReport(models.Model):
                 GROUP BY
                     aml.product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text),
-                    pt.categ_id,
+                    pt.categ_id
 
             )
         """)
