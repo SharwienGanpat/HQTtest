@@ -1,13 +1,13 @@
 /** @odoo-module **/
 
 import { patch } from "@web/core/utils/patch";
-import { Order } from "@point_of_sale/app/store/models";
+import { PosOrder } from "@point_of_sale/app/models/pos_order";
 
-patch(Order.prototype, {
+patch(PosOrder.prototype, {
     setup() {
         super.setup(...arguments);
 
-        // Automatically mark invoice = true
+        // Set invoice checked by default
         this.to_invoice = true;
     },
 });
