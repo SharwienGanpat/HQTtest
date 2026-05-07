@@ -144,7 +144,7 @@
     <menuitem id="menu_invoice_product_currency_report"
               name="Invoice Product Currency Report"
               parent="account.menu_finance_reports"
-              action="action_invoice_product_currency_report"
+              action="action_invoice_product_report_wizard"
               sequence="110"/>
 
 </odoo>
