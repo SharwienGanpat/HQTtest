@@ -1,0 +1,47 @@
+<odoo>
+
+    <record id="view_invoice_product_currency_report_list" model="ir.ui.view">
+        <field name="name">invoice.product.currency.report.list</field>
+        <field name="model">invoice.product.currency.report</field>
+        <field name="arch" type="xml">
+            <list string="Invoice Product Currency Report" create="false" edit="false" delete="false">
+                <field name="product_name" string="Product" optional="show"/>
+                <field name="quantity" string="Quantity" sum="Quantity" optional="show"/>
+
+                <field name="amount_untaxed_usd" string="Tax Excluded USD" sum="Tax Excluded USD" optional="show"/>
+                <field name="amount_untaxed_srd" string="Tax Excluded SRD" sum="Tax Excluded SRD" optional="show"/>
+
+                <field name="amount_total_usd" string="Total USD" sum="Total USD" optional="show"/>
+                <field name="amount_total_srd" string="Total SRD" sum="Total SRD" optional="show"/>
+
+                <field name="product_id" string="Product Record" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_invoice_product_currency_report_search" model="ir.ui.view">
+        <field name="name">invoice.product.currency.report.search</field>
+        <field name="model">invoice.product.currency.report</field>
+        <field name="arch" type="xml">
+            <search string="Invoice Product Currency Report">
+                <field name="product_name"/>
+                <field name="product_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_invoice_product_currency_report" model="ir.actions.act_window">
+        <field name="name">Invoice Product Currency Report</field>
+        <field name="res_model">invoice.product.currency.report</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_invoice_product_currency_report_list"/>
+        <field name="search_view_id" ref="view_invoice_product_currency_report_search"/>
+    </record>
+
+    <menuitem id="menu_invoice_product_currency_report"
+              name="Invoice Product Currency Report"
+              parent="account.menu_finance_reports"
+              action="action_invoice_product_currency_report"
+              sequence="95"/>
+
+</odoo>
