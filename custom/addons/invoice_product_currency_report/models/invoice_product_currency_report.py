@@ -67,7 +67,7 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id AS product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text) AS product_name,
                     pt.categ_id AS product_categ_id,
-                    COALESCE(ip.value_float, 0.0) AS purchase_cost,
+                    COALESCE((pp.standard_price->>1)::numeric, 0.0) AS purchase_cost,
 
                     am.invoice_date AS invoice_date,
                     am.invoice_date_due AS due_date,
@@ -138,9 +138,6 @@ class InvoiceProductCurrencyReport(models.Model):
                 JOIN res_currency rc ON rc.id = am.currency_id
                 JOIN product_product pp ON pp.id = aml.product_id
                 JOIN product_template pt ON pt.id = pp.product_tmpl_id
-                LEFT JOIN ir_property ip
-                    ON ip.name = 'standard_price'
-                    AND ip.res_id = 'product.product,' || pp.id
 
                 WHERE am.move_type IN ('out_invoice', 'out_refund')
                   AND aml.product_id IS NOT NULL
@@ -150,7 +147,7 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text),
                     pt.categ_id,
-                    COALESCE(ip.value_float, 0.0),
+                    COALESCE((pp.standard_price->>1)::numeric, 0.0),
 
                     am.invoice_date,
                     am.invoice_date_due,
