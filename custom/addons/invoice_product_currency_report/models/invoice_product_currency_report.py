@@ -67,7 +67,7 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id AS product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text) AS product_name,
                     pt.categ_id AS product_categ_id,
-                    pp.standard_price AS purchase_cost,
+                    COALESCE(pp.standard_price, 0.0)::numeric AS purchase_cost,
 
                     am.invoice_date AS invoice_date,
                     am.invoice_date_due AS due_date,
@@ -147,7 +147,7 @@ class InvoiceProductCurrencyReport(models.Model):
                     aml.product_id,
                     COALESCE(pt.name->>'en_US', pt.name::text),
                     pt.categ_id,
-                    pp.standard_price,
+                    COALESCE(pp.standard_price, 0.0)::numeric,
 
                     am.invoice_date,
                     am.invoice_date_due,
