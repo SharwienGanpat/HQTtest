@@ -61,6 +61,24 @@ class ProductTemplate(models.Model):
             product.display_list_price = f"{product.list_price:.2f} {currency.name}"
             product.display_standard_price = f"{product.standard_price:.2f} {currency.name}"
 
+    @api.onchange("company_id", "allowed_company_ids")
+    def _onchange_allowed_companies_set_price_currency(self):
+        for product in self:
+            if product.company_id:
+                product.product_price_currency_id = product.company_id.currency_id
+
+            elif product.allowed_company_ids:
+                currencies = product.allowed_company_ids.mapped("currency_id")
+                if len(currencies) == 1:
+                    product.product_price_currency_id = currencies[0]
+                else:
+                    usd = self.env.ref("base.USD", raise_if_not_found=False)
+                    product.product_price_currency_id = usd or self.env.company.currency_id
+
+            else:
+                usd = self.env.ref("base.USD", raise_if_not_found=False)
+                product.product_price_currency_id = usd or self.env.company.currency_id
+
 
 class ProductProduct(models.Model):
     _inherit = "product.product"
