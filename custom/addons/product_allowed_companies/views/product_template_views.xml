@@ -6,7 +6,12 @@
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='barcode']" position="after">
+                <field name="display_currency_id" invisible="1"/>
                 <field name="allowed_company_ids" widget="many2many_tags"/>
+            </xpath>
+
+            <xpath expr="//field[@name='list_price']" position="attributes">
+                <attribute name="options">{'currency_field': 'display_currency_id'}</attribute>
             </xpath>
 
         </field>
