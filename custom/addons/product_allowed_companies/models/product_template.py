@@ -86,7 +86,7 @@ class ProductProduct(models.Model):
         related="product_tmpl_id.product_price_currency_id",
         string="Product Price Currency",
         readonly=True,
-        store=True,
+        store=False,
     )
 
     display_list_price = fields.Char(
