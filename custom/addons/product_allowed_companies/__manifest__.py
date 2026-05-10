@@ -3,7 +3,7 @@
     "version": "18.0.1.0.0",
     "category": "Product",
     "summary": "Restrict product visibility to selected companies",
-    "depends": ["product", "sale"],
+    "depends": ["product", "sale", "account"],
     "data": [
         "security/product_security.xml",
         "views/product_template_views.xml",
