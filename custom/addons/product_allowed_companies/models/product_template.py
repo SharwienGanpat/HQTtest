@@ -10,15 +10,16 @@ class ProductTemplate(models.Model):
         "product_tmpl_id",
         "company_id",
         string="Allowed Companies",
-        help="If empty, the product is visible to all companies. "
-             "If set, the product is visible only to the selected companies.",
+        help="If empty, the product is visible to all companies. If set, visible only to selected companies.",
     )
 
-    display_currency_id = fields.Many2one(
+    product_price_currency_id = fields.Many2one(
         "res.currency",
-        string="Display Currency",
-        compute="_compute_display_currency_id",
-        store=False,
+        string="Product Price Currency",
+        compute="_compute_product_price_currency_id",
+        store=True,
+        readonly=False,
+        help="The real currency of this product's Sales Price and Cost.",
     )
 
     display_list_price = fields.Char(
@@ -34,37 +35,31 @@ class ProductTemplate(models.Model):
     )
 
     @api.depends("company_id", "allowed_company_ids")
-    def _compute_display_currency_id(self):
+    def _compute_product_price_currency_id(self):
         usd = self.env.ref("base.USD", raise_if_not_found=False)
 
         for product in self:
             if product.company_id:
-                product.display_currency_id = product.company_id.currency_id
+                product.product_price_currency_id = product.company_id.currency_id
 
             elif product.allowed_company_ids:
                 currencies = product.allowed_company_ids.mapped("currency_id")
-
                 if len(currencies) == 1:
-                    product.display_currency_id = currencies[0]
+                    product.product_price_currency_id = currencies[0]
                 elif usd:
-                    product.display_currency_id = usd
+                    product.product_price_currency_id = usd
                 else:
-                    product.display_currency_id = self.env.company.currency_id
+                    product.product_price_currency_id = self.env.company.currency_id
 
-            elif usd:
-                product.display_currency_id = usd
+            elif not product.product_price_currency_id:
+                product.product_price_currency_id = usd or self.env.company.currency_id
 
-            else:
-                product.display_currency_id = self.env.company.currency_id
-
-    @api.depends("list_price", "standard_price", "display_currency_id")
+    @api.depends("list_price", "standard_price", "product_price_currency_id")
     def _compute_display_prices(self):
         for product in self:
-            currency = product.display_currency_id or self.env.company.currency_id
-            currency_name = currency.name or ""
-
-            product.display_list_price = f"{product.list_price:.2f} {currency_name}"
-            product.display_standard_price = f"{product.standard_price:.2f} {currency_name}"
+            currency = product.product_price_currency_id or self.env.company.currency_id
+            product.display_list_price = f"{product.list_price:.2f} {currency.name}"
+            product.display_standard_price = f"{product.standard_price:.2f} {currency.name}"
 
 
 class ProductProduct(models.Model):
@@ -76,10 +71,11 @@ class ProductProduct(models.Model):
         readonly=True,
     )
 
-    display_currency_id = fields.Many2one(
-        related="product_tmpl_id.display_currency_id",
-        string="Display Currency",
-        readonly=True,
+    product_price_currency_id = fields.Many2one(
+        related="product_tmpl_id.product_price_currency_id",
+        string="Product Price Currency",
+        readonly=False,
+        store=True,
     )
 
     display_list_price = fields.Char(
