@@ -40,6 +40,9 @@
             <xpath expr="//field[@name='list_price']" position="replace">
                 <field name="display_list_price" string="Sales Price"/>
             </xpath>
+            <xpath expr="//field[@name='standard_price']" position="replace">
+                <field name="display_standard_price" string="Cost"/>
+            </xpath>
         </field>
     </record>
 </odoo>
