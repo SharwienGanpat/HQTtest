@@ -16,4 +16,30 @@
 
         </field>
     </record>
+
+    <record id="product_template_kanban_allowed_companies_currency" model="ir.ui.view">
+        <field name="name">product.template.kanban.allowed.companies.currency</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='list_price']" position="attributes">
+                <attribute name="options">{'currency_field': 'display_currency_id'}</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="product_template_tree_currency" model="ir.ui.view">
+        <field name="name">product.template.tree.currency</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='list_price']" position="attributes">
+                <attribute name="options">{'currency_field': 'display_currency_id'}</attribute>
+            </xpath>
+
+        </field>
+    </record>
 </odoo>
