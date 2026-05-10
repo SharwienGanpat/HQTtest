@@ -16,9 +16,6 @@ class ProductTemplate(models.Model):
     product_price_currency_id = fields.Many2one(
         "res.currency",
         string="Product Price Currency",
-        compute="_compute_product_price_currency_id",
-        store=True,
-        readonly=False,
         help="The real currency of this product's Sales Price and Cost.",
     )
 
@@ -34,50 +31,46 @@ class ProductTemplate(models.Model):
         store=False,
     )
 
-    @api.depends("company_id", "allowed_company_ids")
-    def _compute_product_price_currency_id(self):
+    def _get_price_currency_from_companies(self):
+        self.ensure_one()
         usd = self.env.ref("base.USD", raise_if_not_found=False)
 
-        for product in self:
-            if product.company_id:
-                product.product_price_currency_id = product.company_id.currency_id
+        if self.company_id:
+            return self.company_id.currency_id
 
-            elif product.allowed_company_ids:
-                currencies = product.allowed_company_ids.mapped("currency_id")
-                if len(currencies) == 1:
-                    product.product_price_currency_id = currencies[0]
-                elif usd:
-                    product.product_price_currency_id = usd
-                else:
-                    product.product_price_currency_id = self.env.company.currency_id
+        if self.allowed_company_ids:
+            currencies = self.allowed_company_ids.mapped("currency_id")
+            if len(currencies) == 1:
+                return currencies[0]
+            return usd or self.env.company.currency_id
 
-            elif not product.product_price_currency_id:
-                product.product_price_currency_id = usd or self.env.company.currency_id
+        return usd or self.env.company.currency_id
 
     @api.depends("list_price", "standard_price", "product_price_currency_id")
     def _compute_display_prices(self):
         for product in self:
-            currency = product.product_price_currency_id or self.env.company.currency_id
+            currency = product.product_price_currency_id or product._get_price_currency_from_companies()
             product.display_list_price = f"{product.list_price:.2f} {currency.name}"
             product.display_standard_price = f"{product.standard_price:.2f} {currency.name}"
 
     @api.onchange("company_id", "allowed_company_ids")
     def _onchange_allowed_companies_set_price_currency(self):
         for product in self:
-            if product.company_id:
-                product.product_price_currency_id = product.company_id.currency_id
+            product.product_price_currency_id = product._get_price_currency_from_companies()
 
-            elif product.allowed_company_ids:
-                currencies = product.allowed_company_ids.mapped("currency_id")
-                if len(currencies) == 1:
-                    product.product_price_currency_id = currencies[0]
-                else:
-                    usd = self.env.ref("base.USD", raise_if_not_found=False)
-                    product.product_price_currency_id = usd or self.env.company.currency_id
+    @api.model_create_multi
+    def create(self, vals_list):
+        products = super().create(vals_list)
+        for product in products:
+            product.product_price_currency_id = product._get_price_currency_from_companies()
+        return products
 
-            else:
-                usd = self.env.ref("base.USD", raise_if_not_found=False)
-                product.product_price_currency_id = usd or self.env.company.currency_id
+    def write(self, vals):
+        res = super().write(vals)
+        if "company_id" in vals or "allowed_company_ids" in vals:
+            for product in self:
+                product.product_price_currency_id = product._get_price_currency_from_companies()
+        return res
 
 
 class ProductProduct(models.Model):
@@ -92,7 +85,7 @@ class ProductProduct(models.Model):
     product_price_currency_id = fields.Many2one(
         related="product_tmpl_id.product_price_currency_id",
         string="Product Price Currency",
-        readonly=False,
+        readonly=True,
         store=True,
     )
 
