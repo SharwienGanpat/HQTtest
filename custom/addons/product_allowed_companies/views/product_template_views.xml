@@ -30,6 +30,9 @@
 
             <xpath expr="//sheet" position="inside">
                 <style>
+                    label[for^="company_id"] {
+                        display: none !important;
+                    }
                     div[name="company_id"] {
                         display: none !important;
                     }
