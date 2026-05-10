@@ -24,6 +24,10 @@
                        options="{'currency_field': 'product_price_currency_id'}"/>
             </xpath>
 
+            <xpath expr="//span[contains(text(), 'Incl. Taxes')]/.." position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
         </field>
     </record>
 
