@@ -1,0 +1,31 @@
+<odoo>
+    <record id="product_template_allowed_company_rule" model="ir.rule">
+        <field name="name">Product Template: Allowed Companies</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="domain_force">
+            ['|',
+                ('allowed_company_ids', '=', False),
+                ('allowed_company_ids', 'in', company_ids)
+            ]
+        </field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="product_product_allowed_company_rule" model="ir.rule">
+        <field name="name">Product Variant: Allowed Companies</field>
+        <field name="model_id" ref="product.model_product_product"/>
+        <field name="domain_force">
+            ['|',
+                ('allowed_company_ids', '=', False),
+                ('allowed_company_ids', 'in', company_ids)
+            ]
+        </field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>
