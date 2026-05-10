@@ -10,6 +10,20 @@
                 <field name="allowed_company_ids" widget="many2many_tags"/>
             </xpath>
 
+            <!-- Sales Price -->
+            <xpath expr="//field[@name='list_price']" position="replace">
+                <field name="list_price"
+                       widget="monetary"
+                       options="{'currency_field': 'product_price_currency_id'}"/>
+            </xpath>
+
+            <!-- Cost -->
+            <xpath expr="//field[@name='standard_price']" position="replace">
+                <field name="standard_price"
+                       widget="monetary"
+                       options="{'currency_field': 'product_price_currency_id'}"/>
+            </xpath>
+
         </field>
     </record>
 
