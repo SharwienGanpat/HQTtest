@@ -6,8 +6,8 @@
         <field name="inherit_id" ref="account.account_invoice_report_view_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='price_total']" position="after">
-                <field name="amount_usd" string="Total USD" sum="Total USD"/>
-                <field name="amount_srd" string="Total SRD" sum="Total SRD"/>
+                <field name="amount_usd" string="Total USD" sum="Total USD" optional="show"/>
+                <field name="amount_srd" string="Total SRD" sum="Total SRD" optional="show"/>
             </xpath>
         </field>
     </record>
