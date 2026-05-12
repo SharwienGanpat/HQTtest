@@ -4,7 +4,9 @@
     'category': 'Accounting',
     'summary': 'Split Invoice Analysis totals by currency',
     'depends': ['account'],
-    'data': [],
+    'data': [
+        'views/account_invoice_report_views.xml',
+    ],
     'installable': True,
     'application': False,
 }

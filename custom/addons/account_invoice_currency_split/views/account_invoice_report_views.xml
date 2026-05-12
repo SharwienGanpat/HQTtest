@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="account_invoice_report_view_list_currency_split" model="ir.ui.view">
+        <field name="name">account.invoice.report.list.currency.split</field>
+        <field name="model">account.invoice.report</field>
+        <field name="inherit_id" ref="account.account_invoice_report_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='price_total']" position="after">
+                <field name="amount_usd" string="Total USD" sum="Total USD"/>
+                <field name="amount_srd" string="Total SRD" sum="Total SRD"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
