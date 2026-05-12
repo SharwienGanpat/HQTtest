@@ -1,4 +1,5 @@
 from odoo import fields, models
+from odoo.tools import SQL
 
 
 class AccountInvoiceReport(models.Model):
@@ -15,25 +16,26 @@ class AccountInvoiceReport(models.Model):
     )
 
     def _select(self):
-        select_str = super()._select()
+        base_select = super()._select()
 
-        # Replace IDs with your actual currencies
+        # Replace with your actual currency IDs
         usd_currency_id = 2
         srd_currency_id = 124
 
-        select_str += f"""
-            ,
-            CASE
-                WHEN move.currency_id = {usd_currency_id}
-                THEN move.amount_total_in_currency
-                ELSE 0
-            END as amount_usd,
+        return SQL(
+            "%s, "
+            "CASE "
+            "WHEN move.currency_id = %s "
+            "THEN move.amount_total_in_currency "
+            "ELSE 0 "
+            "END as amount_usd, "
 
-            CASE
-                WHEN move.currency_id = {srd_currency_id}
-                THEN move.amount_total_in_currency
-                ELSE 0
-            END as amount_srd
-        """
-
-        return select_str
+            "CASE "
+            "WHEN move.currency_id = %s "
+            "THEN move.amount_total_in_currency "
+            "ELSE 0 "
+            "END as amount_srd",
+            base_select,
+            usd_currency_id,
+            srd_currency_id,
+        )
