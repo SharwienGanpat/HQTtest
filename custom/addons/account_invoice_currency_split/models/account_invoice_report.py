@@ -19,8 +19,8 @@ class AccountInvoiceReport(models.Model):
         base_select = super()._select()
 
         # Replace with your real currency IDs
-        usd_currency_id = 2
-        srd_currency_id = 124
+        usd_currency_id = 1
+        srd_currency_id = 140
 
         return SQL(
             "%s, "
