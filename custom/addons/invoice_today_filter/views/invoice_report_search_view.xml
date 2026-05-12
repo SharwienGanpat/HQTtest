@@ -1,0 +1,14 @@
+<odoo>
+    <record id="view_account_invoice_report_search_inherit_today" model="ir.ui.view">
+        <field name="name">account.invoice.report.search.inherit.today</field>
+        <field name="model">account.invoice.report</field>
+        <field name="inherit_id" ref="account.view_account_invoice_report_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter string="Today"
+                        name="filter_today_invoice_date"
+                        domain="[('invoice_date', '=', context_today())]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
